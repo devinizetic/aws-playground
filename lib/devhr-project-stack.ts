@@ -32,7 +32,7 @@ export class DevhrProjectStack extends cdk.Stack {
     new cdk.CfnOutput(this, "ddbTable", { value: table.tableName });
 
     const layer = new lambda.LayerVersion(this, "jimps", {
-      code: lambda.Code.fromAsset("layer/nodejs"),
+      code: lambda.Code.fromAsset("layer"),
       compatibleRuntimes: [lambda.Runtime.NODEJS_12_X],
       license: "Apache-2.0",
       description:

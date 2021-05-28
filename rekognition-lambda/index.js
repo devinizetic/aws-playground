@@ -32,7 +32,7 @@ const generateThumb = async (bucketName, bucketKey) => {
       console.log("response Body is empty.");
       return;
     }
-    fs.writeFileSync(downloadPath, imageData.Body.toString());
+    fs.writeFileSync(downloadPath, imageData.Body);
     console.log(`${downloadPath} has been created!`);
   } catch (err) {
     console.log(err, err.stack);
@@ -40,7 +40,6 @@ const generateThumb = async (bucketName, bucketKey) => {
 
   //Create our thumbnail using Jimps library
   await resizeImage(downloadPath, uploadPath);
-
   try {
     const uploadedData = await uploadFileToThumbBucket(uploadPath, bucketKey);
     console.log(`File uploaded successfully. ${uploadedData.Location}`);
@@ -67,7 +66,7 @@ const downloadFile = (bucketName, key) => {
 const uploadFileToThumbBucket = (filePath, fileKey) => {
   // Read content from the file
   console.log(`reading => ${filePath}`);
-  const fileContent = fs.readFileSync(fileName);
+  const fileContent = fs.readFileSync(filePath);
 
   // Setting up S3 upload parameters
   const params = {
@@ -81,6 +80,7 @@ const uploadFileToThumbBucket = (filePath, fileKey) => {
 };
 
 const resizeImage = async (imagePath, resizedPath) => {
+  console.log(`Jimp will read => ${imagePath}`);
   const myImage = await Jimp.read(imagePath);
   return myImage.cover(250, 250).quality(60).writeAsync(resizedPath);
 };
