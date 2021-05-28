@@ -36,7 +36,7 @@ const getLabels = async (imageRequest) => {
     var params = {
       TableName: imageLabelsTable,
       Key: {
-        HashKey: key,
+        image: key
       },
     };
     const response = await dynamodb.get(params).promise();
@@ -54,8 +54,7 @@ const deleteImage = async (imageRequest) => {
     var params = {
       TableName: imageLabelsTable,
       Key: {
-        HashKey: key,
-        NumberRangeKey: 1,
+        image: key
       },
     };
     await dynamodb.delete(params).promise();

@@ -81,8 +81,8 @@ export class DevhrProjectStack extends cdk.Stack {
         THUMBBUCKET: resizedBucket.bucketName,
       },
     });
-    imageBucket.grantRead(serviceFn);
-    resizedBucket.grantPut(serviceFn);
+    imageBucket.grantWrite(serviceFn);
+    resizedBucket.grantWrite(serviceFn);
     table.grantReadWriteData(serviceFn);
   }
 }
