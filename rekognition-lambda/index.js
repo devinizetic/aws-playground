@@ -146,6 +146,3 @@ const rekFunction = async (bucketName, bucketKey) => {
 
   return;
 };
-
-//Clean the string to add the colon back into requested name
-const replaceSubstringWithColon = (txt) => txt.replace("%3A", ":");

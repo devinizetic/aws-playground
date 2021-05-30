@@ -1,4 +1,10 @@
-import * as cdk from "@aws-cdk/core";
+import {
+  Stack,
+  Construct,
+  StackProps,
+  RemovalPolicy,
+  CfnOutput,
+} from "@aws-cdk/core";
 import s3 = require("@aws-cdk/aws-s3");
 import lambda = require("@aws-cdk/aws-lambda");
 import dynamodb = require("@aws-cdk/aws-dynamodb");
@@ -9,34 +15,34 @@ import event_sources = require("@aws-cdk/aws-lambda-event-sources");
 const imageBucketName = "cdk-rekn-imagebucket";
 const resizedBucketName = `${imageBucketName}-resized`;
 
-export class DevhrProjectStack extends cdk.Stack {
-  constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
+export class DevhrProjectStack extends Stack {
+  constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
 
     const imageBucket = new s3.Bucket(this, imageBucketName, {
-      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      removalPolicy: RemovalPolicy.DESTROY,
     });
-    new cdk.CfnOutput(this, "imageBucket", { value: imageBucket.bucketName });
+    new CfnOutput(this, "imageBucket", { value: imageBucket.bucketName });
 
     const resizedBucket = new s3.Bucket(this, resizedBucketName, {
-      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      removalPolicy: RemovalPolicy.DESTROY,
     });
-    new cdk.CfnOutput(this, "resizedBucket", {
+    new CfnOutput(this, "resizedBucket", {
       value: resizedBucket.bucketName,
     });
 
     const table = new dynamodb.Table(this, "ImageLabels", {
       partitionKey: { name: "image", type: dynamodb.AttributeType.STRING },
-      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      removalPolicy: RemovalPolicy.DESTROY,
     });
-    new cdk.CfnOutput(this, "ddbTable", { value: table.tableName });
+    new CfnOutput(this, "ddbTable", { value: table.tableName });
 
-    const layer = new lambda.LayerVersion(this, "jimps", {
-      code: lambda.Code.fromAsset("layer"),
+    const layer = new lambda.LayerVersion(this, "jimp", {
+      code: lambda.Code.fromAsset("dependencies"),
       compatibleRuntimes: [lambda.Runtime.NODEJS_12_X],
       license: "Apache-2.0",
       description:
-        "A layer to enable the JIMPS library in our Rekognition Lambda",
+        "A layer to enable the JIMP library in our Rekognition Lambda",
     });
 
     const rekFn = new lambda.Function(this, "rekognitionFunction", {
