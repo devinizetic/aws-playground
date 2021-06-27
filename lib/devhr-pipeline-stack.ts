@@ -74,7 +74,7 @@ export class AwsdevhourBackendPipelineStack extends Stack {
     const devStage = pipeline.addApplicationStage(
       new AwsdevhourBackendPipelineStage(this, "dev")
     );
-
+    //
     devStage.addActions(
       new ManualApprovalAction({
         actionName: "ManualApproval",
