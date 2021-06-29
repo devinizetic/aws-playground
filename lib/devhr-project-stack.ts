@@ -110,7 +110,7 @@ export class DevhrProjectStack extends Stack {
         "integration.request.querystring.key": "method.request.querystring.key",
       },
       requestTemplates: {
-        "applciation/json": JSON.stringify({
+        "application/json": JSON.stringify({
           action: "$util.escapeJavaScript($input.params('action'))",
           key: "$util.escapeJavaScript($input.params('key'))",
         }),
