@@ -17,19 +17,36 @@ import {
   AuthorizationType,
   PassthroughBehavior,
 } from "@aws-cdk/aws-apigateway";
+import s3deploy = require("@aws-cdk/aws-s3-deployment");
+import { HttpMethods } from "@aws-cdk/aws-s3";
 
 const imageBucketName = "cdk-rekn-imagebucket";
 const resizedBucketName = `${imageBucketName}-resized`;
+const websiteBucketName = "cdk-rekn-publicbucket";
 
 export class DevhrProjectStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
 
+    // =====================================================================================
+    // Image Bucket
+    // =====================================================================================
     const imageBucket = new s3.Bucket(this, imageBucketName, {
       removalPolicy: RemovalPolicy.DESTROY,
     });
     new CfnOutput(this, "imageBucket", { value: imageBucket.bucketName });
     const imageBucketArn = imageBucket.bucketArn;
+
+    imageBucket.addCorsRule({
+      allowedMethods: [HttpMethods.GET, HttpMethods.PUT],
+      allowedOrigins: ["*"],
+      allowedHeaders: ["*"],
+      maxAge: 3000,
+    });
+
+    // =====================================================================================
+    // Thumbnail Bucket
+    // =====================================================================================
 
     const resizedBucket = new s3.Bucket(this, resizedBucketName, {
       removalPolicy: RemovalPolicy.DESTROY,
@@ -38,6 +55,52 @@ export class DevhrProjectStack extends Stack {
       value: resizedBucket.bucketName,
     });
     const resizedBucketArn = resizedBucket.bucketArn;
+    resizedBucket.addCorsRule({
+      allowedMethods: [HttpMethods.GET, HttpMethods.PUT],
+      allowedOrigins: ["*"],
+      allowedHeaders: ["*"],
+      maxAge: 3000,
+    });
+
+    // =====================================================================================
+    // Construct to create our Amazon S3 Bucket to host our website
+    // =====================================================================================
+    const webBucket = new s3.Bucket(this, websiteBucketName, {
+      websiteIndexDocument: "index.html",
+      websiteErrorDocument: "index.html",
+      removalPolicy: RemovalPolicy.DESTROY,
+      // publicReadAccess: true,
+    });
+
+    webBucket.addToResourcePolicy(
+      new iam.PolicyStatement({
+        actions: ["s3:GetObject"],
+        resources: [webBucket.arnForObjects("*")],
+        principals: [new iam.AnyPrincipal()],
+        conditions: {
+          IpAddress: {
+            "aws:SourceIp": [
+              "181.90.145.208/16", // Please change it to your IP address or from your allowed list
+            ],
+          },
+        },
+      })
+    );
+    new CfnOutput(this, "bucketURL", {
+      value: webBucket.bucketWebsiteDomainName,
+    });
+
+    // =====================================================================================
+    // Deploy site contents to S3 Bucket
+    // =====================================================================================
+    new s3deploy.BucketDeployment(this, "DeployWebsite", {
+      sources: [s3deploy.Source.asset("./public")],
+      destinationBucket: webBucket,
+    });
+
+    // =====================================================================================
+    // Amazon DynamoDB table for storing image labels
+    // =====================================================================================
 
     const table = new dynamodb.Table(this, "ImageLabels", {
       partitionKey: { name: "image", type: dynamodb.AttributeType.STRING },
